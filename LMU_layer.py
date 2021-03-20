@@ -23,7 +23,7 @@ class LMU(nn.Module):
         self.eh = nn.Parameter(torch.Tensor(1,self.n))
         self.em = nn.Parameter(torch.Tensor(1,self.d))
 
-        ### A,B MATRIX
+        ### A,B MATRIX ----- FIX??
         realizer = Identity()
         self._realizer_result = realizer(LegendreDelay(theta=theta, order=self.d))
         self._ss = cont2discrete(self._realizer_result.realization, dt=1., method='zoh')
@@ -46,7 +46,7 @@ class LMU(nn.Module):
             self.act = nn.ReLU()
 
         ### INITIALIZATION
-        torch.nn.init.xavier_normal_(self.Wm)    ###???
+        torch.nn.init.xavier_normal_(self.Wm)    ##### FIGURE THIS OUT!!
         torch.nn.init.xavier_normal_(self.Wx)
         torch.nn.init.xavier_normal_(self.Wh)
         torch.nn.init.zeros_(self.em)
@@ -54,13 +54,13 @@ class LMU(nn.Module):
         torch.nn.init.uniform_(self.eh, -np.sqrt(3/self.d), np.sqrt(3/self.d))
         
     def forward(self,x,hm):
-        h,m = hm 
         '''
-        x = (B,self.k) 
-        h = (B,self.n)
-        m = (B,self.d) 
+        x shape: (batch_size, input_size) 
+        h shape: (batch_size, hidden_size)
+        m shape: (batch_size, memory_size) 
         '''
 
+        h,m = hm 
         u = F.linear(x,self.ex)+F.linear(h,self.eh)+F.linear(m,self.em)
         new_m = F.linear(m,self.AT) + F.linear(u,self.BT)
         new_h = self.act(F.linear(x,self.Wx)+F.linear(h,self.Wh)+F.linear(new_m,self.Wm))
