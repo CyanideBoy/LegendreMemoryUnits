@@ -29,6 +29,16 @@ class LMU(nn.Module):
         self._ss = cont2discrete(self._realizer_result.realization, dt=1., method='zoh')
         self._A = self._ss.A
         self._B = self._ss.B
+        '''
+        Q = np.arange(order, dtype=np.float64)
+        R = (2 * Q + 1)[:, None] / theta
+        j, i = np.meshgrid(Q, Q)
+        A = np.where(i < j, -1, (-1.0) ** (i - j + 1)) * R
+        B = (-1.0) ** Q[:, None] * R
+        C = np.ones((1, order))
+        D = np.zeros((1,))
+        self._A, self._B, _, _, _ = cont2discrete((A, B, C, D), dt=1.0, method="zoh")
+        '''
         self.AT = torch.Tensor(self._A)
         self.BT = torch.Tensor(self._B)
         if A_learnable:
