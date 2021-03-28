@@ -7,7 +7,7 @@ import numpy as np
 
 
 class LMU(nn.Module):
-    def __init__(self, input_size, hidden_size, memory_size, theta, nonlinearity='sigmoid', A_learnable = False, B_learnable = False):
+    def __init__(self, input_size, hidden_size, memory_size, theta, discretizer = 'zoh',nonlinearity='sigmoid', A_learnable = False, B_learnable = False):
         super(LMU, self).__init__()
         
         ### SIZE
@@ -26,7 +26,7 @@ class LMU(nn.Module):
         ### A,B MATRIX ----- FIX??
         realizer = Identity()
         self._realizer_result = realizer(LegendreDelay(theta=theta, order=self.d))
-        self._ss = cont2discrete(self._realizer_result.realization, dt=1., method='zoh')
+        self._ss = cont2discrete(self._realizer_result.realization, dt=1., method=discretizer)
         self._A = self._ss.A
         self._B = self._ss.B
         '''
