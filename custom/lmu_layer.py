@@ -39,13 +39,14 @@ class LMU(nn.Module):
         D = np.zeros((1,))
         self._A, self._B, _, _, _ = cont2discrete((A, B, C, D), dt=1.0, method="zoh")
         '''
+        '''
         self.AT = torch.Tensor(self._A)
         self.BT = torch.Tensor(self._B)
         if A_learnable:
             self.AT = nn.Parameter(self.AT)
         if B_learnable:
             self.BT = nn.Parameter(self.BT)
-
+        '''
         ### NON-LINEARITY
         self.nl = nonlinearity
         if self.nl == 'sigmoid':
@@ -62,6 +63,16 @@ class LMU(nn.Module):
         torch.nn.init.zeros_(self.em)
         torch.nn.init.uniform_(self.ex, -np.sqrt(3/self.d), np.sqrt(3/self.d))
         torch.nn.init.uniform_(self.eh, -np.sqrt(3/self.d), np.sqrt(3/self.d))
+
+
+        #### TRIAL
+        self.register_buffer('AT', torch.Tensor(self._A))
+        self.register_buffer('BT', torch.Tensor(self._B))
+        if A_learnable:
+            self.AT = nn.Parameter(self.AT)
+        if B_learnable:
+            self.BT = nn.Parameter(self.BT)
+
         
     def forward(self,x,hm):
         '''
