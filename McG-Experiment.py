@@ -14,10 +14,11 @@ GAMMA = 0.95
 BATCHSIZE = 256
 LEN_INIT = 32
 LEN_TOTAL = 256 + LEN_INIT
-NUMEPOCHS = 40
+NUMEPOCHS = 100
 PREDICT = 15
 SPLIT = [4096,256,256]
-H_SIZE = 25
+MODEL = 'LMU'
+
 
 MG = MGDataset('.', LEN_TOTAL, PREDICT, SPLIT)
 data = MG.get_dataset() 
@@ -31,7 +32,10 @@ test_loader = DataLoader(test_data,batch_size=BATCHSIZE,shuffle=True)
 
 print('Loaded datasets....')
 
-model = McG_LSTM(H_SIZE,BATCHSIZE,LEN_TOTAL)
+if MODEL == 'LSTM':
+    model = McG_LSTM(BSIZE=BATCHSIZE,LEN=LEN_TOTAL)
+elif MODEL == 'LMU':
+    model = McG_LSTM(BSIZE=BATCHSIZE,LEN=LEN_TOTAL)
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print('Running on',device)
@@ -49,12 +53,13 @@ min_val_loss = float('inf')
 loss_values_train = []
 loss_values_val = []
 
+'''
 def repackage_hidden(h):
     if isinstance(h, torch.Tensor):
         return h.detach()
     else:
         return tuple(repackage_hidden(v) for v in h)
-
+'''
 
 for epoch in range(1,NUMEPOCHS+1):
     start_time = time.time()
@@ -68,9 +73,9 @@ for epoch in range(1,NUMEPOCHS+1):
         data_input = data_input.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)  
         data_output = data_output.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
         
-        
-        hidden = repackage_hidden(hidden)
-        output, hidden = model(data_input,hidden) 
+        output, hidden = model(data_input)
+        #hidden = repackage_hidden(hidden)
+        #output, hidden = model(data_input,hidden) 
         loss = criterion(output[LEN_INIT:], data_output[LEN_INIT:])
         #print(torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:]))))
         runloss += loss.item()*BATCHSIZE
@@ -91,8 +96,9 @@ for epoch in range(1,NUMEPOCHS+1):
             data_input = data_input.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
             data_output = data_output.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
 
-            hidden = repackage_hidden(hidden)
-            output, hidden = model(data_input,hidden)
+            output, hidden = model(data_input)
+            #hidden = repackage_hidden(hidden)
+            #output, hidden = model(data_input,hidden)
             print(torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:]))))
             loss = criterion(output[LEN_INIT:], data_output[LEN_INIT:])
             val_loss += loss.item()*BATCHSIZE
@@ -102,7 +108,7 @@ for epoch in range(1,NUMEPOCHS+1):
 
     if val_loss <= min_val_loss:
         min_val_loss = val_loss
-        torch.save(model.state_dict(), 'MG/weights/LSTM-Model_best_val_quicksave.pt')
+        torch.save(model.state_dict(), 'MG/weights/'+MODEL+'_best_val_quicksave.pt')
     
     stop_time = time.time()
     time_el = int(stop_time-start_time)
@@ -120,7 +126,7 @@ plt.legend(['Train','Val'])
 plt.grid(True)
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
-fig.savefig('MG/train_curve.png')
+fig.savefig('MG/'+MODEL+'train_curve.png')
 
 hidden = model.init_hidden(BATCHSIZE,LEN_TOTAL)
 test_loss = 0.0
@@ -128,10 +134,11 @@ with torch.no_grad():
     for data_input, data_output in test_loader:
         data_input = data_input.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
         data_output = data_output.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
-
-        hidden = repackage_hidden(hidden)
-        output, hidden = model(data_input,hidden)
+        output, hidden = model(data_input)
+        #hidden = repackage_hidden(hidden)
+        #output, hidden = model(data_input,hidden)
         print(torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:]))))
         loss = torch.sqrt(torch.mean(torch.square((output[50:]-data_output[50:])/output[50:])))
         test_loss += loss.item()*BATCHSIZE
 test_loss = test_loss/len(test_loader.dataset)
+print('Test loss ',test_loss)
