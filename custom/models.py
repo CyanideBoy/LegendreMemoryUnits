@@ -55,14 +55,14 @@ class McG_LSTM(nn.Module):
 
 class McG_LMU(nn.Module):
     def __init__(self,n=49,d=4,BSIZE=32,LEN=512):
-        super(McG_LSTM, self).__init__()
+        super(McG_LMU, self).__init__()
         
         self.n = n
         self.d = d
-        self.lstm_1 = nn.LMU(1,self.n,self.d,4)
-        self.lstm_2 = nn.LMU(self.n,self.n,self.d,4)
-        self.lstm_3 = nn.LMU(self.n,self.n,self.d,4)
-        self.lstm_4 = nn.LMU(self.n,self.n,self.d,4)
+        self.lstm_1 = LMU(1,self.n,self.d,4)
+        self.lstm_2 = LMU(self.n,self.n,self.d,4)
+        self.lstm_3 = LMU(self.n,self.n,self.d,4)
+        self.lstm_4 = LMU(self.n,self.n,self.d,4)
         self.dropout = nn.Dropout(0.2)
         self.fc1 = nn.Linear(self.n, 1)
 
@@ -90,14 +90,14 @@ class McG_LMU(nn.Module):
         return self.y, (self.ht1, self.ct1, self.ht2, self.ct2, self.ht3, self.ct3, self.ht4, self.ct4)
     
     def init_hidden(self,BSIZE,LEN):
-        self.register_buffer('ht1', torch.zeros(BSIZE,self.size))
-        self.register_buffer('ct1', torch.zeros(BSIZE,self.size))
-        self.register_buffer('ht2', torch.zeros(BSIZE,self.size))
-        self.register_buffer('ct2', torch.zeros(BSIZE,self.size))
-        self.register_buffer('ht3', torch.zeros(BSIZE,self.size))
-        self.register_buffer('ct3', torch.zeros(BSIZE,self.size))
-        self.register_buffer('ht4', torch.zeros(BSIZE,self.size))
-        self.register_buffer('ct4', torch.zeros(BSIZE,self.size))
+        self.register_buffer('ht1', torch.zeros(BSIZE,self.n))
+        self.register_buffer('ct1', torch.zeros(BSIZE,self.d))
+        self.register_buffer('ht2', torch.zeros(BSIZE,self.n))
+        self.register_buffer('ct2', torch.zeros(BSIZE,self.d))
+        self.register_buffer('ht3', torch.zeros(BSIZE,self.n))
+        self.register_buffer('ct3', torch.zeros(BSIZE,self.d))
+        self.register_buffer('ht4', torch.zeros(BSIZE,self.n))
+        self.register_buffer('ct4', torch.zeros(BSIZE,self.d))
         self.register_buffer('y', torch.zeros(LEN,BSIZE,1))
 
         return (self.ht1, self.ct1, self.ht2, self.ct2, self.ht3, self.ct3, self.ht4, self.ct4)

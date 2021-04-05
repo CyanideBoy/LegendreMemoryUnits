@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import matplotlib.pyplot as plt
 from MG.mg_generator import MGDataset
-from custom.models import McG_LSTM
+from custom.models import McG_LSTM, McG_LMU
 import torch.optim as optim
 import time
 
@@ -17,7 +17,7 @@ LEN_TOTAL = 256 + LEN_INIT
 NUMEPOCHS = 100
 PREDICT = 15
 SPLIT = [4096,256,256]
-MODEL = 'LMU'
+MODEL = 'LSTM'
 
 
 MG = MGDataset('.', LEN_TOTAL, PREDICT, SPLIT)
@@ -31,11 +31,12 @@ val_loader = DataLoader(val_data,batch_size=BATCHSIZE,shuffle=True)
 test_loader = DataLoader(test_data,batch_size=BATCHSIZE,shuffle=True)
 
 print('Loaded datasets....')
-
+print('Using Model ',MODEL)
 if MODEL == 'LSTM':
     model = McG_LSTM(BSIZE=BATCHSIZE,LEN=LEN_TOTAL)
+
 elif MODEL == 'LMU':
-    model = McG_LSTM(BSIZE=BATCHSIZE,LEN=LEN_TOTAL)
+    model = McG_LMU(BSIZE=BATCHSIZE,LEN=LEN_TOTAL)
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print('Running on',device)
