@@ -10,9 +10,9 @@ import torch.optim as optim
 import time
 
 LEARNINGRATE = 1e-2
-GAMMA = 0.95
+GAMMA = 0.98
 BATCHSIZE = 256
-LEN_INIT = 32
+LEN_INIT = 0
 LEN_TOTAL = 256 + LEN_INIT
 NUMEPOCHS = 100
 PREDICT = 15
@@ -75,10 +75,8 @@ for epoch in range(1,NUMEPOCHS+1):
         data_output = data_output.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
         
         output, hidden = model(data_input)
-        #hidden = repackage_hidden(hidden)
-        #output, hidden = model(data_input,hidden) 
-        loss = criterion(output[LEN_INIT:], data_output[LEN_INIT:])
-        #print(torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:]))))
+        loss = torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:])))
+        #loss = criterion(output[LEN_INIT:], data_output[LEN_INIT:])
         runloss += loss.item()*BATCHSIZE
 
         loss.backward()
@@ -98,10 +96,9 @@ for epoch in range(1,NUMEPOCHS+1):
             data_output = data_output.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
 
             output, hidden = model(data_input)
-            #hidden = repackage_hidden(hidden)
-            #output, hidden = model(data_input,hidden)
             print(torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:]))))
-            loss = criterion(output[LEN_INIT:], data_output[LEN_INIT:])
+            loss = torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:])))
+            #loss = criterion(output[LEN_INIT:], data_output[LEN_INIT:])
             val_loss += loss.item()*BATCHSIZE
 
     val_loss /= len(val_loader.dataset)
@@ -138,8 +135,11 @@ with torch.no_grad():
         output, hidden = model(data_input)
         #hidden = repackage_hidden(hidden)
         #output, hidden = model(data_input,hidden)
-        print(torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:]))))
-        loss = torch.sqrt(torch.mean(torch.square((output[50:]-data_output[50:])/output[50:])))
+        loss = torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:])))
         test_loss += loss.item()*BATCHSIZE
 test_loss = test_loss/len(test_loader.dataset)
 print('Test loss ',test_loss)
+
+
+
+np.save(MODEL+'_data.npy',(loss_values_train,loss_values_val))
