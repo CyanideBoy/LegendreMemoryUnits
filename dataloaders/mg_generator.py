@@ -45,9 +45,11 @@ class MGDataset:
         else:
             self.x0 = x0
         self.number_of_series=number_of_series
-        if not os.path.exists(os.path.join(self.db_path, 'MG')):
-            os.mkdir(os.path.join(self.db_path, 'MG'))
-        self.pkl_name = os.path.join(self.db_path, 'MG')+'/'+str(seq_len)+'_'+ str(future_predict)+'_'+ ('-').join([str(x) for x in number_of_series])+'.pkl'
+        if not os.path.exists(self.db_path):
+            os.mkdir(self.db_path)
+        if not os.path.exists(os.path.join(self.db_path, 'mg')):
+            os.mkdir(os.path.join(self.db_path, 'mg'))
+        self.pkl_name = os.path.join(self.db_path, 'mg')+'/'+str(seq_len)+'_'+ str(future_predict)+'_'+ ('-').join([str(x) for x in number_of_series])+'.pkl'
         print(self.pkl_name)
     
     def get_dataset(self):
