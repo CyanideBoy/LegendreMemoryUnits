@@ -7,6 +7,7 @@ from dataloaders.mg_generator import MGDataset
 import models
 import torch.optim as optim
 import time
+import sys
 
 LEARNINGRATE = 1e-2
 GAMMA = 0.98
@@ -98,8 +99,8 @@ for epoch in range(1,NUMEPOCHS+1):
             data_output = data_output.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
 
             output, hidden = model(data_input)
-            print(torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:]))))
-            #loss = torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:])))
+            print(torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(data_output[LEN_INIT:]))))
+            #loss = torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(data_output[LEN_INIT:])))
             loss = criterion(output[LEN_INIT:], data_output[LEN_INIT:])
             val_loss += loss.item()*BATCHSIZE
 
@@ -128,14 +129,13 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss')
 fig.savefig(base_pth+MODEL+'_train_curve.png')
 
-hidden = model.init_hidden(BATCHSIZE,LEN_TOTAL)
 test_loss = 0.0
 with torch.no_grad():
     for data_input, data_output in test_loader:
         data_input = data_input.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
         data_output = data_output.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
         output, hidden = model(data_input)
-        loss = torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(output[LEN_INIT:])))
+        loss = torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(data_output[LEN_INIT:])))
         test_loss += loss.item()*BATCHSIZE
         
         actual = data_output.cpu().numpy()[:,0,0]
