@@ -94,7 +94,7 @@ class LMU(nn.Module):
 class BhadwaLMU(nn.Module):
     def __init__(self, input_size, hidden_size, memory_size, theta, discretizer = 'zoh',nonlinearity='sigmoid', 
                         A_learnable = False, B_learnable = False, include_both=False, activate=False):
-        super(LMU, self).__init__()
+        super(BhadwaLMU, self).__init__()
         
         ### SIZE
         self.k = input_size
