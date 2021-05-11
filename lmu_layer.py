@@ -142,9 +142,6 @@ class ASSVMU(nn.Module):
         self.k = input_size
         self.n = hidden_size
         self.d = memory_size
-
-        ###
-        self.include_both = include_both
         
 
         ### PARAMETERS
