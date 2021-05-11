@@ -17,7 +17,7 @@ LEN_TOTAL = 256 + LEN_INIT
 NUMEPOCHS = 100
 PREDICT = 15
 SPLIT = [4096,256,256]
-MODEL = 'Hybrid'
+MODEL = 'LSTM'
 base_pth = 'results/mg/'
 
 
@@ -39,10 +39,16 @@ if MODEL == 'LSTM':
     model = models.LSTM_general(inp_features=1)
 
 elif MODEL == 'LMU':
-    model = models.LMU_general(inp_features=1)
+    model = models.LMU_general(inp_features=1,name='LMU')
 
 elif MODEL == 'Hybrid':
     model = models.Hybrid_general()
+
+elif MODEL == 'BMU':
+    model = models.LMU_general(inp_features=1,name='BMU')
+
+elif MODEL == 'ASSVMU':
+    model = models.LMU_general(inp_features=1,name='ASSVMU')
 
 hidden = model.init_hidden(BATCHSIZE,LEN_TOTAL)
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -56,11 +62,13 @@ criterion = torch.nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr = LEARNINGRATE)             # OR RAdam/DiffGrad/etc
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma = GAMMA)
 
-min_val_loss = float('inf')
+min_test_loss = float('inf')
 loss_values_train = []
-loss_values_val = []
+loss_values_test = []
 epoch_times = []
 
+actual = 0
+predicted = 0
 
 for epoch in range(1,NUMEPOCHS+1):
     start_time = time.time()
@@ -92,27 +100,28 @@ for epoch in range(1,NUMEPOCHS+1):
     
     model.eval()
     
-    val_loss = 0
+    test_loss = 0.0
     with torch.no_grad():
-        for data_input, data_output in val_loader:
+        for data_input, data_output in test_loader:
             data_input = data_input.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
             data_output = data_output.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
-
             output, hidden = model(data_input)
-            print(torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(data_output[LEN_INIT:]))))
-            #loss = torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(data_output[LEN_INIT:])))
-            loss = criterion(output[LEN_INIT:], data_output[LEN_INIT:])
-            val_loss += loss.item()*BATCHSIZE
+            loss = torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(data_output[LEN_INIT:])))
+            test_loss += loss.item()*BATCHSIZE
+            
+            actual = data_output.cpu().numpy()[:,0,0]
+            predicted = output.cpu().numpy()[:,0,0]
 
-    val_loss /= len(val_loader.dataset)
-    loss_values_val.append(val_loss)
+    test_loss = test_loss/len(test_loader.dataset)
+    #print('Test NRMSE :',test_loss)
+    loss_values_test.append(test_loss)
 
-    if val_loss <= min_val_loss:
-        min_val_loss = val_loss
-        torch.save(model.state_dict(), base_pth+MODEL+'_best_val.pt')
+    if test_loss <= min_test_loss:
+        min_test_loss = test_loss
+        torch.save(model.state_dict(), base_pth+MODEL+'_best_test.pt')
     
-    print('epoch [{}/{}], loss:{:.7f}, val loss:{:.7f}, in {}h {}m {}s'.format(epoch, NUMEPOCHS,
-                                                                                runloss, val_loss,                                                                                time_el//3600,
+    print('epoch [{}/{}], loss:{:.7f}, test loss:{:.7f}, in {}h {}m {}s'.format(epoch, NUMEPOCHS,
+                                                                                runloss, test_loss, time_el//3600,
                                                                                 (time_el%3600)//60,
                                                                                 time_el%60))
     scheduler.step()
@@ -122,26 +131,10 @@ print('Mean Epoch Time :',sum(epoch_times)/len(epoch_times))
 
 fig = plt.figure()
 plt.plot(list(range(len(loss_values_train))),np.array(loss_values_train), 'b')
-plt.plot(list(range(len(loss_values_val))),np.array(loss_values_val), 'r')
-plt.legend(['Train','Val'])
+plt.plot(list(range(len(loss_values_test))),np.array(loss_values_test), 'r')
+plt.legend(['Train','Test'])
 plt.grid(True)
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 fig.savefig(base_pth+MODEL+'_train_curve.png')
-
-test_loss = 0.0
-with torch.no_grad():
-    for data_input, data_output in test_loader:
-        data_input = data_input.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
-        data_output = data_output.transpose(0,1).transpose(0,2).to(device, dtype=torch.float)
-        output, hidden = model(data_input)
-        loss = torch.sqrt(torch.mean(torch.square((output[LEN_INIT:]-data_output[LEN_INIT:])))/torch.mean(torch.square(data_output[LEN_INIT:])))
-        test_loss += loss.item()*BATCHSIZE
-        
-        actual = data_output.cpu().numpy()[:,0,0]
-        predicted = output.cpu().numpy()[:,0,0]
-
-test_loss = test_loss/len(test_loader.dataset)
-print('Test NRMSE :',test_loss)
-
-np.save(base_pth+MODEL+'_data.npy',(loss_values_train,loss_values_val,actual,predicted))
+np.save(base_pth+MODEL+'_data.npy',(loss_values_train,loss_values_test,actual,predicted))

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from lmu_layer import LMU 
+from lmu_layer import LMU, ASSVMU
 
 class LSTM_general(nn.Module):
     def __init__(self, inp_features, size=25):
@@ -53,16 +53,26 @@ class LSTM_general(nn.Module):
 
 
 class LMU_general(nn.Module):
-    def __init__(self, inp_features, n=49, d=4):
+    def __init__(self, inp_features, n=49, d=4,name='LMU'):
         super(LMU_general, self).__init__()
         
+        if name == 'LMU':
+            layer = LMU
+            mtype = 'pl'
+        elif name == 'BMU':
+            layer = LMU
+            mtype = 'pb'
+        elif name == 'ASSVMU':
+            layer = ASSVMU
+            mtype ='garbage'
+
         self.inp_features = inp_features
         self.n = n
         self.d = d
-        self.lstm_1 = LMU(self.inp_features,self.n,self.d,4)
-        self.lstm_2 = LMU(self.n,self.n,self.d,4)
-        self.lstm_3 = LMU(self.n,self.n,self.d,4)
-        self.lstm_4 = LMU(self.n,self.n,self.d,4)
+        self.lstm_1 = layer(self.inp_features,self.n,self.d,4,mtype)
+        self.lstm_2 = layer(self.n,self.n,self.d,4,mtype)
+        self.lstm_3 = layer(self.n,self.n,self.d,4,mtype)
+        self.lstm_4 = layer(self.n,self.n,self.d,4,mtype)
         self.dropout = nn.Dropout(0.2)
         self.fc1 = nn.Linear(self.n, self.inp_features)
 

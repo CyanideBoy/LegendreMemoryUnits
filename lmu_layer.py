@@ -7,7 +7,8 @@ from scipy.special import comb
 
 
 class LMU(nn.Module):
-    def __init__(self, input_size, hidden_size, memory_size, theta, matrix_type='pl',discretizer = 'zoh',nonlinearity='sigmoid', A_learnable = False, B_learnable = False):
+    def __init__(self, input_size, hidden_size, memory_size, theta, matrix_type='pl',
+                discretizer = 'zoh',nonlinearity='sigmoid', A_learnable = False, B_learnable = False):
         super(LMU, self).__init__()
 
         ### SIZE
@@ -134,7 +135,7 @@ class ASSVMU(nn.Module):
     Co-invented by Abhishek, Syomantak, Siddharth, Vaidehi, Mithilesh
     ASSVM + MU = ASSVMU
     '''
-    def __init__(self, input_size, hidden_size, memory_size, theta, discretizer = 'zoh',nonlinearity='sigmoid', 
+    def __init__(self, input_size, hidden_size, memory_size, theta, name='garbage', discretizer = 'zoh',nonlinearity='sigmoid', 
                         A_learnable = False, B_learnable = False, activate=False):
         super(ASSVMU, self).__init__()
         
