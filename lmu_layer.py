@@ -6,6 +6,7 @@ from nengolib.synapses import LegendreDelay
 import numpy as np
 
 
+
 class LMU(nn.Module):
     def __init__(self, input_size, hidden_size, memory_size, theta, discretizer = 'zoh',nonlinearity='sigmoid', A_learnable = False, B_learnable = False):
         super(LMU, self).__init__()
@@ -91,10 +92,14 @@ class LMU(nn.Module):
 
 
 
-class BhadwaLMU(nn.Module):
+class ASSVMU(nn.Module):
+    '''
+    Co-invented by Abhishek, Syomantak, Siddharth, Vaidehi, Mithilesh
+    ASSVM + MU = ASSVMU
+    '''
     def __init__(self, input_size, hidden_size, memory_size, theta, discretizer = 'zoh',nonlinearity='sigmoid', 
                         A_learnable = False, B_learnable = False, include_both=False, activate=False):
-        super(BhadwaLMU, self).__init__()
+        super(ASSVMU, self).__init__()
         
         ### SIZE
         self.k = input_size
