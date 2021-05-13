@@ -136,8 +136,7 @@ class LMU(nn.Module):
 
 class ASSVMU(nn.Module):
     '''
-    Co-invented by Abhishek, Syomantak, Siddharth, Vaidehi, Mithilesh
-    ASSVM + MU = ASSVMU
+    Also known as Linear LMU
     '''
     def __init__(self, input_size, hidden_size, memory_size, theta, name='garbage', discretizer = 'zoh',nonlinearity='sigmoid', 
                         A_learnable = False, B_learnable = False, activate=False):
