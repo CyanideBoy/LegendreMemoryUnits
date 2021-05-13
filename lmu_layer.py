@@ -1,3 +1,7 @@
+# Some of the code taken from
+# https://github.com/nengo/keras-lmu/blob/master/keras_lmu/layers.py
+# https://github.com/bjkomer/pytorch-legendre-memory-unit/blob/master/lmu.py
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
